@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestor de Pedidos</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="app-sidebar">
+        <div class="brand">
+          <div class="brand-mark">GP</div>
+          <div>
+            <h1>Gestor de Pedidos</h1>
+            <p>Control multi-sede</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button class="nav-link active" data-screen="dashboard-sede">Dashboard Sede</button>
+          <button class="nav-link" data-screen="crear-pedido">Crear Pedido</button>
+          <button class="nav-link" data-screen="dashboard-bodega">Dashboard Bodega</button>
+          <button class="nav-link" data-screen="detalle-pedido">Detalle Pedido</button>
+          <button class="nav-link" data-screen="historial">Historial</button>
+        </nav>
+      </aside>
+
+      <main class="app-main">
+        <section class="screen screen-login active" id="screen-login">
+          <div class="card card--center">
+            <div class="card-header">
+              <span class="tag">Ingreso</span>
+              <h2>Bienvenido al Gestor de Pedidos</h2>
+              <p>Accede como Encargado de Sede o Bodega para gestionar órdenes.</p>
+            </div>
+
+            <form id="loginForm" class="login-form">
+              <label>
+                Usuario
+                <input type="text" id="loginUser" placeholder="Nombre o correo" required />
+              </label>
+              <label>
+                Sede
+                <select id="loginSede" required>
+                  <option value="Sede Central">Sede Central</option>
+                  <option value="Sede Norte">Sede Norte</option>
+                  <option value="Sede Sur">Sede Sur</option>
+                </select>
+              </label>
+              <label>
+                Rol
+                <select id="loginRole" required>
+                  <option value="Encargado de Sede">Encargado de Sede</option>
+                  <option value="Encargado de Bodega">Encargado de Bodega</option>
+                </select>
+              </label>
+              <button type="submit" class="btn btn-primary">Ingresar</button>
+            </form>
+          </div>
+        </section>
+
+        <section class="screen screen-dashboard" id="dashboard-sede">
+          <div class="page-header">
+            <div>
+              <span class="page-label">Dashboard</span>
+              <h2>Panel Encargado de Sede</h2>
+              <p>Visión general de pedidos, actividades y alertas.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" data-screen="crear-pedido">Nuevo pedido</button>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card stat-card--primary">
+              <h3>30</h3>
+              <p>Pedidos pendientes</p>
+            </article>
+            <article class="stat-card stat-card--warning">
+              <h3>12</h3>
+              <p>En revisión</p>
+            </article>
+            <article class="stat-card stat-card--success">
+              <h3>18</h3>
+              <p>Despachados</p>
+            </article>
+            <article class="stat-card stat-card--info">
+              <h3>8</h3>
+              <p>Notificaciones</p>
+            </article>
+          </div>
+
+          <div class="grid split-2">
+            <div class="card">
+              <div class="card-header">
+                <h3>Pedidos recientes</h3>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Producto</th>
+                    <th>Estado</th>
+                    <th>Urgencia</th>
+                  </tr>
+                </thead>
+                <tbody id="sedeOrdersTable"></tbody>
+              </table>
+            </div>
+
+            <div class="card card--compact">
+              <div class="card-header">
+                <h3>Notificaciones</h3>
+              </div>
+              <ul class="timeline-list" id="notificationsList"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-crear-pedido" id="crear-pedido">
+          <div class="page-header">
+            <div>
+              <span class="page-label">Formulario</span>
+              <h2>Crear nuevo pedido</h2>
+              <p>Captura datos y calcula el costo de manera inmediata.</p>
+            </div>
+          </div>
+
+          <div class="grid split-2">
+            <div class="card">
+              <form id="orderForm" class="order-form">
+                <label>
+                  Nombre de la sede
+                  <input type="text" id="orderBranch" value="Sede Central" required />
+                </label>
+                <label>
+                  Responsable
+                  <input type="text" id="orderRequester" placeholder="Encargado de Sede" required />
+                </label>
+                <label>
+                  Fecha de entrega
+                  <input type="date" id="orderDate" required />
+                </label>
+                <label>
+                  Producto
+                  <select id="productSelect">
+                    <option value="Chaqueta de trabajo">Chaqueta de trabajo</option>
+                    <option value="Guantes de protección">Guantes de protección</option>
+                    <option value="Casco industrial">Casco industrial</option>
+                    <option value="Botas de seguridad">Botas de seguridad</option>
+                  </select>
+                </label>
+                <label>
+                  Cantidad
+                  <input type="number" id="productQuantity" min="1" value="1" />
+                </label>
+                <label>
+                  Observaciones
+                  <textarea id="orderNotes" rows="3" placeholder="Ej. Entrega urgente" ></textarea>
+                </label>
+                <button type="submit" class="btn btn-primary">Agregar pedido</button>
+              </form>
+            </div>
+
+            <div class="card card--summary">
+              <div class="card-header">
+                <h3>Resumen del pedido</h3>
+              </div>
+              <ul class="summary-list" id="orderSummary"></ul>
+              <div class="summary-footer">
+                <span>Items</span>
+                <strong id="summaryCount">0</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-bodega" id="dashboard-bodega">
+          <div class="page-header">
+            <div>
+              <span class="page-label">Bodega</span>
+              <h2>Panel Encargado de Bodega</h2>
+              <p>Control de pedidos entrantes y seguimientos.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" data-screen="historial">Ver historial</button>
+            </div>
+          </div>
+
+          <div class="filters-row">
+            <label>
+              Filtrar por estado
+              <select id="filterStatus">
+                <option value="Todos">Todos</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="En revisión">En revisión</option>
+                <option value="Despachado">Despachado</option>
+              </select>
+            </label>
+            <label>
+              Buscar sede
+              <input type="text" id="filterBranch" placeholder="Sede" />
+            </label>
+          </div>
+
+          <div class="card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Sede</th>
+                  <th>Cliente</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="bodegaOrdersTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="screen screen-detalle" id="detalle-pedido">
+          <div class="page-header">
+            <div>
+              <span class="page-label">Revisión</span>
+              <h2>Detalle de pedido</h2>
+              <p>Información del pedido, historial y decisiones de aprobación.</p>
+            </div>
+          </div>
+
+          <div class="grid split-2">
+            <div class="card">
+              <div class="card-header">
+                <h3>Información del pedido</h3>
+              </div>
+              <dl class="detail-list">
+                <div>
+                  <dt>ID</dt>
+                  <dd>#PD-1024</dd>
+                </div>
+                <div>
+                  <dt>Sede</dt>
+                  <dd>Sede Sur</dd>
+                </div>
+                <div>
+                  <dt>Cliente</dt>
+                  <dd>Encargado de Sede</dd>
+                </div>
+                <div>
+                  <dt>Estado</dt>
+                  <dd><span class="badge badge-warning">En revisión</span></dd>
+                </div>
+                <div>
+                  <dt>Urgencia</dt>
+                  <dd>Alta</dd>
+                </div>
+                <div>
+                  <dt>Fecha solicitada</dt>
+                  <dd>21/05/2026</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="card card--compact">
+              <div class="card-header">
+                <h3>Resumen de productos</h3>
+              </div>
+              <ul class="product-list">
+                <li>Chaqueta de trabajo x 10</li>
+                <li>Guantes de protección x 25</li>
+                <li>Casco industrial x 15</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="grid split-2">
+            <div class="card card--wide">
+              <h3>Historial de cambios</h3>
+              <ul class="timeline-list">
+                <li><strong>20/05</strong> Pedido creado</li>
+                <li><strong>21/05</strong> Enviado a revisión</li>
+                <li><strong>22/05</strong> Revisado por bodega</li>
+              </ul>
+            </div>
+            <div class="card card-actions">
+              <h3>Decisión</h3>
+              <p>Aprueba o rechaza el pedido con observaciones.</p>
+              <textarea id="decisionNotes" rows="4" placeholder="Comentarios..." ></textarea>
+              <div class="actions-row">
+                <button class="btn btn-success">Aprobar</button>
+                <button class="btn btn-danger">Rechazar</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-historial" id="historial">
+          <div class="page-header">
+            <div>
+              <span class="page-label">Seguimiento</span>
+              <h2>Historial y estado de pedidos</h2>
+              <p>Linea de tiempo de eventos, estados y confirmaciones.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <ul class="timeline-line" id="historyTimeline">
+              <li>
+                <span class="timeline-dot"></span>
+                <div>
+                  <strong>Pedido creado</strong>
+                  <p>03/05/2026 - Sede Central inició el pedido.</p>
+                </div>
+              </li>
+              <li>
+                <span class="timeline-dot"></span>
+                <div>
+                  <strong>En revisión</strong>
+                  <p>05/05/2026 - Encargado de bodega evaluó stock.</p>
+                </div>
+              </li>
+              <li>
+                <span class="timeline-dot"></span>
+                <div>
+                  <strong>Despachado</strong>
+                  <p>07/05/2026 - Pedido enviado a destino.</p>
+                </div>
+              </li>
+              <li>
+                <span class="timeline-dot"></span>
+                <div>
+                  <strong>Recibido</strong>
+                  <p>09/05/2026 - Sede receptora confirmó recepción.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
