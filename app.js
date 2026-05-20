@@ -117,6 +117,10 @@ function showScreen(screenId) {
   navLinks.forEach((link) => {
     link.classList.toggle('active', link.dataset.screen === screenId);
   });
+  // Ocultar el botón de logout cuando se muestre la pantalla de login
+  if (typeof logoutBtn !== 'undefined' && logoutBtn) {
+    logoutBtn.style.display = screenId === 'screen-login' ? 'none' : 'inline-flex';
+  }
 }
 
 function getOrderById(id) {
