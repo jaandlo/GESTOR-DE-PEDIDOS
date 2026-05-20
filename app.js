@@ -10,46 +10,105 @@ const bodegaOrdersTable = document.getElementById('bodegaOrdersTable');
 const filterStatus = document.getElementById('filterStatus');
 const filterBranch = document.getElementById('filterBranch');
 const loginRole = document.getElementById('loginRole');
-const filterButtons = document.querySelectorAll('[data-screen]');
+const statPending = document.getElementById('statPending');
+const statReview = document.getElementById('statReview');
+const statShipped = document.getElementById('statShipped');
+const statNotifications = document.getElementById('statNotifications');
+const detailId = document.getElementById('detailId');
+const detailBranch = document.getElementById('detailBranch');
+const detailRequester = document.getElementById('detailRequester');
+const detailStatusBadge = document.getElementById('detailStatusBadge');
+const detailUrgency = document.getElementById('detailUrgency');
+const detailDate = document.getElementById('detailDate');
+const detailNotes = document.getElementById('detailNotes');
+const detailProductList = document.getElementById('detailProductList');
+const detailHistoryTimeline = document.getElementById('detailHistoryTimeline');
+const historyTimeline = document.getElementById('historyTimeline');
+const decisionNotes = document.getElementById('decisionNotes');
+const approveOrderBtn = document.getElementById('approveOrderBtn');
+const rejectOrderBtn = document.getElementById('rejectOrderBtn');
+const dispatchOrderBtn = document.getElementById('dispatchOrderBtn');
+const receiveOrderBtn = document.getElementById('receiveOrderBtn');
+const logoutBtn = document.getElementById('logoutBtn');
 
 const sampleOrders = [
   {
     id: 'PD-1001',
-    client: 'Sede Central',
+    branch: 'Sede Central',
+    requester: 'Juan Pérez',
     product: 'Casco industrial',
+    quantity: 12,
     status: 'Pendiente',
     urgency: 'Alta',
+    date: '2026-05-21',
+    notes: 'Entrega urgente',
+    history: [
+      { date: '2026-05-18', event: 'Pedido creado por Sede Central' },
+    ],
   },
   {
     id: 'PD-1002',
-    client: 'Sede Norte',
+    branch: 'Sede Norte',
+    requester: 'María López',
     product: 'Guantes de protección',
+    quantity: 25,
     status: 'En revisión',
     urgency: 'Media',
+    date: '2026-05-19',
+    notes: 'Verificar tallas disponibles',
+    history: [
+      { date: '2026-05-18', event: 'Pedido creado por Sede Norte' },
+      { date: '2026-05-19', event: 'Bodega inició revisión' },
+    ],
   },
   {
     id: 'PD-1003',
-    client: 'Sede Sur',
+    branch: 'Sede Sur',
+    requester: 'Carlos Díaz',
     product: 'Botas de seguridad',
+    quantity: 10,
     status: 'Despachado',
     urgency: 'Baja',
+    date: '2026-05-17',
+    notes: 'Entrega al almacén sur',
+    history: [
+      { date: '2026-05-16', event: 'Pedido creado por Sede Sur' },
+      { date: '2026-05-17', event: 'Pedido aprobado por bodega' },
+      { date: '2026-05-18', event: 'Pedido despachado' },
+    ],
   },
   {
     id: 'PD-1004',
-    client: 'Sede Central',
+    branch: 'Sede Central',
+    requester: 'Laura Sánchez',
     product: 'Chaqueta de trabajo',
+    quantity: 8,
     status: 'Pendiente',
     urgency: 'Alta',
+    date: '2026-05-20',
+    notes: 'Tallas mixtas',
+    history: [
+      { date: '2026-05-20', event: 'Pedido creado por Sede Central' },
+    ],
   },
 ];
 
 const notifications = [
-  'Nuevo pedido pendiente de revisión en Sede Norte.',
-  'Pedido PD-1003 ha sido despachado con éxito.',
-  'Sede Central solicitó actualización de stock.',
+  'Pedido PD-1002 requiere revisión adicional.',
+  'Pedido PD-1003 fue despachado ayer.',
+  'Sede Central solicita actualización de stock.',
 ];
 
 const summaryItems = [];
+const appState = {
+  currentUser: null,
+  selectedOrderId: null,
+};
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
 
 function showScreen(screenId) {
   screens.forEach((screen) => {
@@ -60,14 +119,51 @@ function showScreen(screenId) {
   });
 }
 
+function getOrderById(id) {
+  return sampleOrders.find((order) => order.id === id);
+}
+
+function getStatusClass(status) {
+  switch (status) {
+    case 'Pendiente':
+      return 'badge-warning';
+    case 'En revisión':
+      return 'badge-warning';
+    case 'Aprobado':
+      return 'badge-success';
+    case 'Despachado':
+      return 'badge-info';
+    case 'Recibido':
+      return 'badge-primary';
+    case 'Rechazado':
+      return 'badge-danger';
+    default:
+      return 'badge-warning';
+  }
+}
+
+function renderDashboardStats() {
+  const pending = sampleOrders.filter((order) => order.status === 'Pendiente').length;
+  const review = sampleOrders.filter((order) => order.status === 'En revisión').length;
+  const shipped = sampleOrders.filter((order) => order.status === 'Despachado').length;
+
+  statPending.textContent = pending;
+  statReview.textContent = review;
+  statShipped.textContent = shipped;
+  statNotifications.textContent = notifications.length;
+}
+
 function renderSedeOrders() {
-  sedeOrdersTable.innerHTML = sampleOrders
+  const branch = appState.currentUser?.branch || 'Sede Central';
+  const orders = sampleOrders.filter((order) => order.branch === branch);
+
+  sedeOrdersTable.innerHTML = orders
     .slice(0, 5)
     .map(
       (order) => `
       <tr>
         <td>${order.id}</td>
-        <td>${order.client}</td>
+        <td>${order.branch}</td>
         <td>${order.product}</td>
         <td>${order.status}</td>
         <td>${order.urgency}</td>
@@ -77,7 +173,15 @@ function renderSedeOrders() {
 }
 
 function renderNotifications() {
-  notificationsList.innerHTML = notifications
+  const recentNotifications = [
+    ...notifications,
+    ...sampleOrders
+      .filter((order) => order.status === 'Pendiente')
+      .map((order) => `Pedido ${order.id} pendiente en ${order.branch}.`),
+  ];
+
+  notificationsList.innerHTML = recentNotifications
+    .slice(0, 6)
     .map((note) => `<li>${note}</li>`)
     .join('');
 }
@@ -88,7 +192,7 @@ function renderBodegaOrders() {
 
   const filtered = sampleOrders.filter((order) => {
     const statusMatch = statusFilter === 'Todos' || order.status === statusFilter;
-    const branchMatch = order.client.toLowerCase().includes(branchFilter);
+    const branchMatch = order.branch.toLowerCase().includes(branchFilter);
     return statusMatch && branchMatch;
   });
 
@@ -97,10 +201,10 @@ function renderBodegaOrders() {
       (order) => `
       <tr>
         <td>${order.id}</td>
-        <td>${order.client}</td>
+        <td>${order.branch}</td>
         <td>${order.product}</td>
         <td>${order.status}</td>
-        <td><button class="btn btn-secondary" data-screen="detalle-pedido">Ver</button></td>
+        <td><button class="btn btn-secondary" data-order-id="${order.id}">Ver</button></td>
       </tr>`
     )
     .join('');
@@ -115,6 +219,104 @@ function updateOrderSummary() {
   summaryCount.textContent = summaryItems.length;
 }
 
+function renderOrderDetail(orderId) {
+  const order = getOrderById(orderId);
+  if (!order) return;
+
+  appState.selectedOrderId = order.id;
+
+  detailId.textContent = order.id;
+  detailBranch.textContent = order.branch;
+  detailRequester.textContent = order.requester;
+  detailStatusBadge.textContent = order.status;
+  detailStatusBadge.className = `badge ${getStatusClass(order.status)}`;
+  detailUrgency.textContent = order.urgency;
+  detailDate.textContent = formatDate(order.date);
+  detailNotes.textContent = order.notes;
+
+  detailProductList.innerHTML = `
+    <li>${order.product} x ${order.quantity}</li>
+  `;
+
+  detailHistoryTimeline.innerHTML = order.history
+    .map(
+      (item) => `
+      <li>
+        <strong>${formatDate(item.date)}</strong>
+        <p>${item.event}</p>
+      </li>`
+    )
+    .join('');
+
+  decisionNotes.value = '';
+  updateActionButtons(order.status);
+  showScreen('detalle-pedido');
+}
+
+function renderHistorial() {
+  const events = sampleOrders
+    .flatMap((order) =>
+      order.history.map((item) => ({
+        ...item,
+        orderId: order.id,
+      }))
+    )
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 8);
+
+  historyTimeline.innerHTML = events
+    .map(
+      (item) => `
+      <li>
+        <span class="timeline-dot"></span>
+        <div>
+          <strong>${formatDate(item.date)}</strong>
+          <p>${item.orderId} - ${item.event}</p>
+        </div>
+      </li>`
+    )
+    .join('');
+}
+
+function updateActionButtons(status) {
+  approveOrderBtn.style.display = 'none';
+  rejectOrderBtn.style.display = 'none';
+  dispatchOrderBtn.style.display = 'none';
+  receiveOrderBtn.style.display = 'none';
+
+  if (status === 'Pendiente' || status === 'En revisión') {
+    approveOrderBtn.style.display = 'inline-flex';
+    rejectOrderBtn.style.display = 'inline-flex';
+  }
+
+  if (status === 'Aprobado') {
+    dispatchOrderBtn.style.display = 'inline-flex';
+    rejectOrderBtn.style.display = 'inline-flex';
+  }
+
+  if (status === 'Despachado') {
+    receiveOrderBtn.style.display = 'inline-flex';
+  }
+}
+
+function updateOrderStatus(orderId, status, note) {
+  const order = getOrderById(orderId);
+  if (!order) return;
+
+  order.status = status;
+  order.history.push({
+    date: new Date().toISOString().slice(0, 10),
+    event: `${status}${note ? ` - ${note}` : ''}`,
+  });
+
+  renderDashboardStats();
+  renderSedeOrders();
+  renderBodegaOrders();
+  renderNotifications();
+  renderHistorial();
+  renderOrderDetail(orderId);
+}
+
 loginForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const userName = document.getElementById('loginUser').value.trim();
@@ -126,11 +328,23 @@ loginForm.addEventListener('submit', (event) => {
     return;
   }
 
+  appState.currentUser = {
+    name: userName,
+    branch: userBranch,
+    role,
+  };
+
   if (role === 'Encargado de Bodega') {
     showScreen('dashboard-bodega');
   } else {
     showScreen('dashboard-sede');
   }
+
+  renderDashboardStats();
+  renderSedeOrders();
+  renderBodegaOrders();
+  renderNotifications();
+  renderHistorial();
 });
 
 orderForm.addEventListener('submit', (event) => {
@@ -139,16 +353,48 @@ orderForm.addEventListener('submit', (event) => {
   const product = document.getElementById('productSelect').value;
   const quantity = Number(document.getElementById('productQuantity').value);
   const branch = document.getElementById('orderBranch').value;
+  const requester = document.getElementById('orderRequester').value.trim();
+  const date = document.getElementById('orderDate').value;
+  const notes = document.getElementById('orderNotes').value.trim();
 
   if (quantity < 1) {
     alert('La cantidad debe ser al menos 1.');
     return;
   }
 
+  if (!requester || !date) {
+    alert('Completa todos los campos del pedido.');
+    return;
+  }
+
+  const newOrder = {
+    id: `PD-${1000 + sampleOrders.length + 1}`,
+    branch,
+    requester,
+    product,
+    quantity,
+    status: 'Pendiente',
+    urgency: quantity > 20 ? 'Alta' : 'Media',
+    date,
+    notes: notes || 'Sin observaciones',
+    history: [
+      { date, event: `Pedido creado por ${requester}` },
+    ],
+  };
+
+  sampleOrders.unshift(newOrder);
   summaryItems.push({ product, quantity, branch });
+
   updateOrderSummary();
+  renderBodegaOrders();
+  renderDashboardStats();
+  renderNotifications();
   orderForm.reset();
   document.getElementById('orderBranch').value = branch;
+
+  if (appState.currentUser?.role !== 'Encargado de Bodega') {
+    showScreen('dashboard-sede');
+  }
 });
 
 navLinks.forEach((link) => {
@@ -156,6 +402,13 @@ navLinks.forEach((link) => {
 });
 
 document.addEventListener('click', (event) => {
+  const orderButton = event.target.closest('[data-order-id]');
+  if (orderButton) {
+    event.preventDefault();
+    renderOrderDetail(orderButton.dataset.orderId);
+    return;
+  }
+
   const button = event.target.closest('[data-screen]');
   if (!button) return;
   const screen = button.dataset.screen;
@@ -168,11 +421,51 @@ document.addEventListener('click', (event) => {
 filterStatus.addEventListener('change', renderBodegaOrders);
 filterBranch.addEventListener('input', renderBodegaOrders);
 
-appInit();
+approveOrderBtn.addEventListener('click', () => {
+  const note = decisionNotes.value.trim();
+  updateOrderStatus(appState.selectedOrderId, 'Aprobado', note);
+});
+
+rejectOrderBtn.addEventListener('click', () => {
+  const note = decisionNotes.value.trim();
+  updateOrderStatus(appState.selectedOrderId, 'Rechazado', note);
+});
+
+dispatchOrderBtn.addEventListener('click', () => {
+  updateOrderStatus(appState.selectedOrderId, 'Despachado', 'Pedido enviado a despacho');
+});
+
+receiveOrderBtn.addEventListener('click', () => {
+  updateOrderStatus(appState.selectedOrderId, 'Recibido', 'Recepción confirmada en sede');
+});
 
 function appInit() {
+  renderDashboardStats();
   renderSedeOrders();
   renderNotifications();
   renderBodegaOrders();
+  renderHistorial();
   updateOrderSummary();
+}
+
+appInit();
+
+// Logout handler
+function handleLogout() {
+  appState.currentUser = null;
+  appState.selectedOrderId = null;
+  loginForm.reset();
+  // Reset to login screen
+  showScreen('screen-login');
+  // Refresh views
+  renderDashboardStats();
+  renderSedeOrders();
+  renderBodegaOrders();
+  renderNotifications();
+  renderHistorial();
+  updateOrderSummary();
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', handleLogout);
 }

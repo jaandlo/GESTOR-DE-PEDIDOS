@@ -24,6 +24,9 @@
           <button class="nav-link" data-screen="detalle-pedido">Detalle Pedido</button>
           <button class="nav-link" data-screen="historial">Historial</button>
         </nav>
+        <div class="sidebar-footer">
+          <button id="logoutBtn" class="btn btn-secondary">Cerrar sesión</button>
+        </div>
       </aside>
 
       <main class="app-main">
@@ -74,19 +77,19 @@
 
           <div class="stats-grid">
             <article class="stat-card stat-card--primary">
-              <h3>30</h3>
+              <h3 id="statPending">0</h3>
               <p>Pedidos pendientes</p>
             </article>
             <article class="stat-card stat-card--warning">
-              <h3>12</h3>
+              <h3 id="statReview">0</h3>
               <p>En revisión</p>
             </article>
             <article class="stat-card stat-card--success">
-              <h3>18</h3>
+              <h3 id="statShipped">0</h3>
               <p>Despachados</p>
             </article>
             <article class="stat-card stat-card--info">
-              <h3>8</h3>
+              <h3 id="statNotifications">0</h3>
               <p>Notificaciones</p>
             </article>
           </div>
@@ -238,27 +241,31 @@
               <dl class="detail-list">
                 <div>
                   <dt>ID</dt>
-                  <dd>#PD-1024</dd>
+                  <dd id="detailId">#PD-1024</dd>
                 </div>
                 <div>
                   <dt>Sede</dt>
-                  <dd>Sede Sur</dd>
+                  <dd id="detailBranch">Sede Sur</dd>
                 </div>
                 <div>
                   <dt>Cliente</dt>
-                  <dd>Encargado de Sede</dd>
+                  <dd id="detailRequester">Encargado de Sede</dd>
                 </div>
                 <div>
                   <dt>Estado</dt>
-                  <dd><span class="badge badge-warning">En revisión</span></dd>
+                  <dd><span id="detailStatusBadge" class="badge badge-warning">En revisión</span></dd>
                 </div>
                 <div>
                   <dt>Urgencia</dt>
-                  <dd>Alta</dd>
+                  <dd id="detailUrgency">Alta</dd>
                 </div>
                 <div>
                   <dt>Fecha solicitada</dt>
-                  <dd>21/05/2026</dd>
+                  <dd id="detailDate">21/05/2026</dd>
+                </div>
+                <div>
+                  <dt>Observaciones</dt>
+                  <dd id="detailNotes">Sin observaciones</dd>
                 </div>
               </dl>
             </div>
@@ -267,18 +274,14 @@
               <div class="card-header">
                 <h3>Resumen de productos</h3>
               </div>
-              <ul class="product-list">
-                <li>Chaqueta de trabajo x 10</li>
-                <li>Guantes de protección x 25</li>
-                <li>Casco industrial x 15</li>
-              </ul>
+              <ul id="detailProductList" class="product-list"></ul>
             </div>
           </div>
 
           <div class="grid split-2">
             <div class="card card--wide">
               <h3>Historial de cambios</h3>
-              <ul class="timeline-list">
+              <ul id="detailHistoryTimeline" class="timeline-list">
                 <li><strong>20/05</strong> Pedido creado</li>
                 <li><strong>21/05</strong> Enviado a revisión</li>
                 <li><strong>22/05</strong> Revisado por bodega</li>
@@ -287,10 +290,12 @@
             <div class="card card-actions">
               <h3>Decisión</h3>
               <p>Aprueba o rechaza el pedido con observaciones.</p>
-              <textarea id="decisionNotes" rows="4" placeholder="Comentarios..." ></textarea>
+              <textarea id="decisionNotes" rows="4" placeholder="Comentarios..."></textarea>
               <div class="actions-row">
-                <button class="btn btn-success">Aprobar</button>
-                <button class="btn btn-danger">Rechazar</button>
+                <button class="btn btn-success" id="approveOrderBtn">Aprobar</button>
+                <button class="btn btn-danger" id="rejectOrderBtn">Rechazar</button>
+                <button class="btn btn-secondary" id="dispatchOrderBtn" style="display:none;">Despachar</button>
+                <button class="btn btn-secondary" id="receiveOrderBtn" style="display:none;">Confirmar recibido</button>
               </div>
             </div>
           </div>

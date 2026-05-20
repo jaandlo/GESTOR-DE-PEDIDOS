@@ -35,6 +35,10 @@ textarea {
 
 button {
   cursor: pointer;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--border);
+  
 }
 
 .app-shell {
@@ -49,6 +53,7 @@ button {
   padding: 32px 24px;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 32px;
 }
 
@@ -76,6 +81,10 @@ button {
 .brand p {
   margin: 6px 0 0;
   color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 400;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .sidebar-nav {
@@ -98,6 +107,17 @@ button {
   background: rgba(255, 255, 255, 0.12);
 }
 
+.sidebar-footer {
+  padding-top: 12px;
+}
+
+.sidebar-footer .btn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
 .app-main {
   padding: 32px 40px;
 }
@@ -110,6 +130,19 @@ button {
   display: block;
 }
 
+.tag {
+  background: var(--primary-soft);
+  color: var(--primary);
+  size: max-content;
+  line-height: 20px;
+  border: 1px solid var(--primary);
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -119,8 +152,62 @@ button {
 }
 
 .card--center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
   max-width: 520px;
   margin: 0 auto;
+  gap: 18px;
+}
+
+.screen-login .card {
+  max-width: 560px;
+  margin: 32px auto;
+}
+
+.login-form {
+  width: 100%;
+}
+
+.login-form label {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+
+.login-form input,
+.login-form select,
+.login-form textarea {
+  min-height: 48px;
+  border: 1px solid #c4d0e0;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-form input:focus,
+.login-form select:focus,
+.login-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(31, 86, 215, 0.12);
+}
+
+.screen-login .btn-primary {
+  width: 100%;
+}
+
+.screen-login .card-header {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.screen-login .card-header h2 {
+  font-size: 1.4rem;
+}
+
+.screen-login .card-header p {
+  max-width: 100%;
 }
 
 .card--compact {
@@ -260,21 +347,48 @@ button {
 }
 
 .timeline-list li,
-.product-list li {
+.product-list li,
+.summary-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   margin-bottom: 16px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   background: var(--surface-strong);
   border-radius: 14px;
 }
 
+.product-list li {
+  justify-content: flex-start;
+}
+
 .summary-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 14px 16px;
-  background: var(--surface-strong);
-  border-radius: 14px;
   margin-bottom: 12px;
+}
+
+.detail-list {
+  display: grid;
+  gap: 14px;
+}
+
+.detail-list div {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+}
+
+.detail-list dt {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.detail-list dd {
+  margin: 0;
+  font-size: 1rem;
 }
 
 .summary-footer {
@@ -356,6 +470,11 @@ textarea {
 .badge-warning {
   background: rgba(248, 162, 60, 0.14);
   color: var(--warning);
+}
+
+.badge-primary {
+  background: rgba(31, 86, 215, 0.12);
+  color: var(--primary);
 }
 
 .detail-list {
