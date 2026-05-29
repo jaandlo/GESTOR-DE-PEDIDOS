@@ -38,29 +38,17 @@
               <p>Accede como Encargado de Sede o Bodega para gestionar órdenes.</p>
             </div>
 
-            <form id="loginForm" class="login-form">
-              <label>
-                Usuario
-                <input type="text" id="loginUser" placeholder="Nombre o correo" required />
-              </label>
-              <label>
-                Sede
-                <select id="loginSede" required>
-                  <option value="Sede Central">Sede Central</option>
-                  <option value="Sede Norte">Sede Norte</option>
-                  <option value="Sede Sur">Sede Sur</option>
-                </select>
-              </label>
-              <label>
-                Rol
-                <select id="loginRole" required>
-                  <option value="Encargado de Sede">Encargado de Sede</option>
-                  <option value="Encargado de Bodega">Encargado de Bodega</option>
-                  <option value="Administrador">Administrador</option>
-                </select>
-              </label>
-              <button type="submit" class="btn btn-primary">Ingresar</button>
-            </form>
+            <form id="loginForm" class="login-form" autocomplete="off">
+  <label>
+    Usuario
+    <input type="text" id="loginUser" placeholder="Nombre de usuario" required />
+  </label>
+  <label>
+    Contraseña
+    <input type="password" id="loginPassword" placeholder="Contraseña" required />
+  </label>
+  <button type="submit" class="btn btn-primary">Ingresar</button>
+</form>
           </div>
         </section>
 
