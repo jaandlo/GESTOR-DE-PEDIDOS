@@ -260,6 +260,64 @@ function updateOrderSummary() {
   summaryCount.textContent = summaryItems.length;
 }
 
+let currentOrderItems = [];
+
+function renderOrderItemsTable() {
+  const tbody = document.getElementById('orderItemsTable');
+  const count = document.getElementById('orderItemsCount');
+  if (!tbody) return;
+
+  tbody.innerHTML = currentOrderItems.map((item, idx) => `
+    <tr>
+      <td>${item.ref}</td>
+      <td>${item.name}</td>
+      <td>
+        <input type="number" min="1" value="${item.quantity}"
+          style="width:60px; padding:4px 8px; border-radius:8px;"
+          onchange="currentOrderItems[${idx}].quantity = Math.max(1, +this.value);" />
+      </td>
+      <td>
+        <input type="text" value="${item.obs}" placeholder="—"
+          style="width:90px; padding:4px 8px; border-radius:8px;"
+          onchange="currentOrderItems[${idx}].obs = this.value;" />
+      </td>
+      <td>
+        <button onclick="removeOrderItem(${idx})"
+          style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:1rem;">✕</button>
+      </td>
+    </tr>`
+  ).join('');
+
+  if (count) {
+    const total = currentOrderItems.reduce((s, i) => s + i.quantity, 0);
+    count.textContent = currentOrderItems.length + ' producto' +
+      (currentOrderItems.length !== 1 ? 's' : '') + ' — ' + total + ' unidades en total';
+  }
+}
+
+function removeOrderItem(idx) {
+  currentOrderItems.splice(idx, 1);
+  renderOrderItemsTable();
+}
+
+function addProductToOrder(ref) {
+  const product = productCatalog.find((p) => p.ref === ref);
+  if (!product) return;
+  if (currentOrderItems.find((i) => i.ref === ref)) {
+    alert('Ese producto ya está en el pedido.'); return;
+  }
+  currentOrderItems.push({
+    ref: product.ref, name: product.name,
+    unit: product.unit, quantity: 1,
+    quantityApproved: 1, obs: '',
+  });
+  renderOrderItemsTable();
+  const searchEl = document.getElementById('productSearch');
+  const resultsEl = document.getElementById('productSearchResults');
+  if (searchEl)  searchEl.value = '';
+  if (resultsEl) resultsEl.innerHTML = '';
+}
+
 function renderOrderDetail(orderId) {
   const order = getOrderById(orderId);
   if (!order) return;
@@ -472,6 +530,35 @@ document.addEventListener('click', (event) => {
 
 filterStatus.addEventListener('change', renderBodegaOrders);
 filterBranch.addEventListener('input', renderBodegaOrders);
+
+const productSearchEl = document.getElementById('productSearch');
+if (productSearchEl) {
+  productSearchEl.addEventListener('input', () => {
+    const q       = productSearchEl.value.toLowerCase();
+    const results = document.getElementById('productSearchResults');
+    if (!results) return;
+    if (q.length < 2) { results.innerHTML = ''; return; }
+
+    const encontrados = productCatalog.filter((p) =>
+      p.name.toLowerCase().includes(q) || p.ref.toLowerCase().includes(q)
+    );
+
+    results.innerHTML = encontrados.map((p) => `
+      <div style="display:flex; justify-content:space-between; align-items:center;
+                  padding:8px 12px; background:var(--surface-strong);
+                  border-radius:10px; margin-bottom:6px;">
+        <span style="font-size:0.88rem;">
+          <strong>${p.ref}</strong> — ${p.name}
+          <span style="color:var(--text-muted); font-size:0.8rem;">
+            (${p.unit} · ${p.stock} disponibles)
+          </span>
+        </span>
+        <button class="btn btn-secondary" style="padding:6px 14px; font-size:0.82rem;"
+          onclick="addProductToOrder('${p.ref}')">+ Agregar</button>
+      </div>`
+    ).join('') || '<p style="font-size:0.85rem; color:var(--text-muted);">Sin resultados.</p>';
+  });
+}
 
 approveOrderBtn.addEventListener('click', () => {
   const note = decisionNotes.value.trim();
