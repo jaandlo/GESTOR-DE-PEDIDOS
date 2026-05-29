@@ -605,3 +605,35 @@ textarea {
   opacity: 1;
   transform: translateY(0);
 }
+
+.order-stepper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.stepper-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 84px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+.stepper-node::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--border);
+  border: 2px solid var(--border);
+}
+.stepper-node.done::before  { background: var(--success); border-color: var(--success); }
+.stepper-node.active::before { background: var(--primary); border-color: var(--primary); }
+.stepper-node.done,
+.stepper-node.active { color: var(--text); }
+.stepper-connector { flex: 1; height: 2px; background: var(--border); min-width: 16px; }
+.stepper-connector.done { background: var(--success); }
