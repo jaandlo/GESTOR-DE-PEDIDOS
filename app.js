@@ -31,31 +31,42 @@ const dispatchOrderBtn = document.getElementById('dispatchOrderBtn');
 const receiveOrderBtn = document.getElementById('receiveOrderBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
+const productCatalog = [
+  { ref: 'EPP-001', name: 'Casco industrial', unit: 'und', stock: 24 },
+  { ref: 'EPP-045', name: 'Guantes de protección', unit: 'par', stock: 35 },
+  { ref: 'EPP-078', name: 'Botas de seguridad', unit: 'par', stock: 8 },
+  { ref: 'EPP-012', name: 'Chaqueta de trabajo', unit: 'und', stock: 15 },
+  { ref: 'EPP-033', name: 'Gafas de protección', unit: 'und', stock: 42 },
+  { ref: 'EPP-055', name: 'Mascarilla N95', unit: 'und', stock: 60 },
+];
+
 const sampleOrders = [
   {
     id: 'PD-1001',
     branch: 'Sede Central',
     requester: 'Juan Pérez',
-    product: 'Casco industrial',
-    quantity: 12,
-    status: 'Pendiente',
     urgency: 'Alta',
+    status: 'Pendiente',
     date: '2026-05-21',
     notes: 'Entrega urgente',
-    history: [
-      { date: '2026-05-18', event: 'Pedido creado por Sede Central' },
+    items: [
+      { ref: 'EPP-001', name: 'Casco industrial', unit: 'und', quantity: 12, quantityApproved: 12, obs: '' },
+      { ref: 'EPP-033', name: 'Gafas de protección', unit: 'und', quantity: 12, quantityApproved: 12, obs: '' },
     ],
+    history: [{ date: '2026-05-21', event: 'Pedido creado por Juan Pérez' }],
   },
   {
     id: 'PD-1002',
     branch: 'Sede Norte',
     requester: 'María López',
-    product: 'Guantes de protección',
-    quantity: 25,
-    status: 'En revisión',
     urgency: 'Media',
+    status: 'En revisión',
     date: '2026-05-19',
     notes: 'Verificar tallas disponibles',
+    items: [
+      { ref: 'EPP-045', name: 'Guantes de protección', unit: 'par', quantity: 25, quantityApproved: 25, obs: 'Talla M' },
+      { ref: 'EPP-033', name: 'Gafas de protección', unit: 'und', quantity: 10, quantityApproved: 10, obs: '' },
+    ],
     history: [
       { date: '2026-05-18', event: 'Pedido creado por Sede Norte' },
       { date: '2026-05-19', event: 'Bodega inició revisión' },
@@ -65,15 +76,16 @@ const sampleOrders = [
     id: 'PD-1003',
     branch: 'Sede Sur',
     requester: 'Carlos Díaz',
-    product: 'Botas de seguridad',
-    quantity: 10,
-    status: 'Despachado',
     urgency: 'Baja',
+    status: 'Despachado',
     date: '2026-05-17',
     notes: 'Entrega al almacén sur',
+    items: [
+      { ref: 'EPP-078', name: 'Botas de seguridad', unit: 'par', quantity: 10, quantityApproved: 8, obs: '' },
+    ],
     history: [
       { date: '2026-05-16', event: 'Pedido creado por Sede Sur' },
-      { date: '2026-05-17', event: 'Pedido aprobado por bodega' },
+      { date: '2026-05-17', event: 'Pedido aprobado parcialmente — 8 de 10 pares disponibles' },
       { date: '2026-05-18', event: 'Pedido despachado' },
     ],
   },
@@ -81,15 +93,15 @@ const sampleOrders = [
     id: 'PD-1004',
     branch: 'Sede Central',
     requester: 'Laura Sánchez',
-    product: 'Chaqueta de trabajo',
-    quantity: 8,
-    status: 'Pendiente',
     urgency: 'Alta',
+    status: 'Pendiente',
     date: '2026-05-20',
-    notes: 'Tallas mixtas',
-    history: [
-      { date: '2026-05-20', event: 'Pedido creado por Sede Central' },
+    notes: 'Tallas mixtapes',
+    items: [
+      { ref: 'EPP-012', name: 'Chaqueta de trabajo', unit: 'und', quantity: 8, quantityApproved: 8, obs: '' },
+      { ref: 'EPP-055', name: 'Mascarilla N95', unit: 'und', quantity: 50, quantityApproved: 50, obs: '' },
     ],
+    history: [{ date: '2026-05-20', event: 'Pedido creado por Laura Sánchez' }],
   },
 ];
 
