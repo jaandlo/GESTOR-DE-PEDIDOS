@@ -123,6 +123,13 @@ function formatDate(dateString) {
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+function showToast(message) {
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 2800);
+}
+
 const STATUS_STEPS = ['Pendiente', 'En revisión', 'Aprobado', 'Despachado', 'Recibido'];
 
 function renderStepper(containerId, currentStatus) {
@@ -462,6 +469,7 @@ function updateOrderStatus(orderId, status, note) {
   renderNotifications();
   renderHistorial();
   renderOrderDetail(orderId);
+  showToast('Pedido ' + orderId + ' actualizado a: ' + status);
 }
 
 loginForm.addEventListener('submit', (event) => {
