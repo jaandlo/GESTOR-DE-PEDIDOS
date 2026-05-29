@@ -553,8 +553,21 @@ if (productSearchEl) {
 }
 
 approveOrderBtn.addEventListener('click', () => {
-  const note = decisionNotes.value.trim();
-  updateOrderStatus(appState.selectedOrderId, 'Aprobado', note);
+  const note  = decisionNotes.value.trim();
+  const order = getOrderById(appState.selectedOrderId);
+  if (!order) return;
+
+  document.querySelectorAll('.approve-qty').forEach((input) => {
+    const item = order.items.find((i) => i.ref === input.dataset.ref);
+    if (item) item.quantityApproved = Math.max(0, +input.value);
+  });
+
+  const esParciál = order.items.some((i) => i.quantityApproved < i.quantity);
+  const evento    = esParciál
+    ? 'Aprobación parcial' + (note ? ' — ' + note : '')
+    : 'Aprobado' + (note ? ' — ' + note : '');
+
+  updateOrderStatus(appState.selectedOrderId, 'Aprobado', evento);
 });
 
 rejectOrderBtn.addEventListener('click', () => {
