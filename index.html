@@ -56,6 +56,7 @@
                 <select id="loginRole" required>
                   <option value="Encargado de Sede">Encargado de Sede</option>
                   <option value="Encargado de Bodega">Encargado de Bodega</option>
+                  <option value="Administrador">Administrador</option>
                 </select>
               </label>
               <button type="submit" class="btn btn-primary">Ingresar</button>
@@ -292,10 +293,15 @@
               <p>Aprueba o rechaza el pedido con observaciones.</p>
               <textarea id="decisionNotes" rows="4" placeholder="Comentarios..."></textarea>
               <div class="actions-row">
-                <button class="btn btn-success" id="approveOrderBtn">Aprobar</button>
-                <button class="btn btn-danger" id="rejectOrderBtn">Rechazar</button>
+                <button class="btn btn-secondary" id="reviewOrderBtn" style="display:none;">Poner en revisión</button>
+                <button class="btn btn-success"   id="approveOrderBtn" style="display:none;">Aprobar</button>
+                <button class="btn btn-danger"    id="rejectOrderBtn">Rechazar</button>
                 <button class="btn btn-secondary" id="dispatchOrderBtn" style="display:none;">Despachar</button>
-                <button class="btn btn-secondary" id="receiveOrderBtn" style="display:none;">Confirmar recibido</button>
+                <button class="btn btn-secondary" id="receiveOrderBtn"  style="display:none;">Confirmar recibido</button>
+                <button class="btn btn-danger"    id="cancelOrderBtn"
+                  style="display:none; background:transparent; color:var(--danger); border:1px solid var(--danger);">
+                  Cancelar pedido
+                </button>
               </div>
             </div>
           </div>
@@ -345,7 +351,7 @@
         </section>
       </main>
     </div>
-
+    <div id="toast" class="toast"></div>
     <script src="app.js"></script>
   </body>
 </html>
