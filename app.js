@@ -129,10 +129,20 @@ function showScreen(screenId) {
   navLinks.forEach((link) => {
     link.classList.toggle('active', link.dataset.screen === screenId);
   });
-  // Ocultar el botón de logout cuando se muestre la pantalla de login
-  if (typeof logoutBtn !== 'undefined' && logoutBtn) {
+
+  if (logoutBtn) {
     logoutBtn.style.display = screenId === 'screen-login' ? 'none' : 'inline-flex';
   }
+
+  const role = appState.currentUser?.role;
+  navLinks.forEach((link) => {
+    if (!role) { link.style.display = 'none'; return; }
+    const s = link.dataset.screen;
+    const oculto =
+      (s === 'dashboard-bodega' && role === 'Encargado de Sede') ||
+      (s === 'dashboard-sede'   && role === 'Encargado de Bodega');
+    link.style.display = oculto ? 'none' : '';
+  });
 }
 
 function getOrderById(id) {
@@ -295,23 +305,34 @@ function renderHistorial() {
 }
 
 function updateActionButtons(status) {
-  approveOrderBtn.style.display = 'none';
-  rejectOrderBtn.style.display = 'none';
-  dispatchOrderBtn.style.display = 'none';
-  receiveOrderBtn.style.display = 'none';
+  [approveOrderBtn, rejectOrderBtn, dispatchOrderBtn,
+   receiveOrderBtn, reviewOrderBtn, cancelOrderBtn].forEach((b) => {
+    if (b) b.style.display = 'none';
+  });
 
-  if (status === 'Pendiente' || status === 'En revisión') {
-    approveOrderBtn.style.display = 'inline-flex';
-    rejectOrderBtn.style.display = 'inline-flex';
+  const role = appState.currentUser?.role;
+
+  if (role === 'Encargado de Bodega') {
+    if (status === 'Pendiente') {
+      if (reviewOrderBtn)  reviewOrderBtn.style.display  = 'inline-flex';
+      if (rejectOrderBtn)  rejectOrderBtn.style.display  = 'inline-flex';
+    }
+    if (status === 'En revisión') {
+      if (approveOrderBtn) approveOrderBtn.style.display = 'inline-flex';
+      if (rejectOrderBtn)  rejectOrderBtn.style.display  = 'inline-flex';
+    }
+    if (status === 'Aprobado') {
+      if (dispatchOrderBtn) dispatchOrderBtn.style.display = 'inline-flex';
+    }
   }
 
-  if (status === 'Aprobado') {
-    dispatchOrderBtn.style.display = 'inline-flex';
-    rejectOrderBtn.style.display = 'inline-flex';
-  }
-
-  if (status === 'Despachado') {
-    receiveOrderBtn.style.display = 'inline-flex';
+  if (role === 'Encargado de Sede') {
+    if (status === 'Despachado') {
+      if (receiveOrderBtn) receiveOrderBtn.style.display = 'inline-flex';
+    }
+    if (status === 'Pendiente') {
+      if (cancelOrderBtn) cancelOrderBtn.style.display = 'inline-flex';
+    }
   }
 }
 
