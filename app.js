@@ -30,6 +30,7 @@ const rejectOrderBtn = document.getElementById('rejectOrderBtn');
 const dispatchOrderBtn = document.getElementById('dispatchOrderBtn');
 const receiveOrderBtn = document.getElementById('receiveOrderBtn');
 const logoutBtn = document.getElementById('logoutBtn');
+const toast = document.getElementById('toast');
 
 const productCatalog = [
   { ref: 'EPP-001', name: 'Casco industrial', unit: 'und', stock: 24 },
@@ -120,6 +121,22 @@ const appState = {
 function formatDate(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+const STATUS_STEPS = ['Pendiente', 'En revisión', 'Aprobado', 'Despachado', 'Recibido'];
+
+function renderStepper(containerId, currentStatus) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const currentIndex = STATUS_STEPS.indexOf(currentStatus);
+
+  container.innerHTML = STATUS_STEPS.map((step, i) => {
+    const nodeClass      = i < currentIndex ? 'done' : (i === currentIndex ? 'active' : '');
+    const connectorClass = i < currentIndex ? 'done' : '';
+    const connector      = i < STATUS_STEPS.length - 1
+      ? `<div class="stepper-connector ${connectorClass}"></div>` : '';
+    return `<div class="stepper-node ${nodeClass}">${step}</div>${connector}`;
+  }).join('');
 }
 
 function showScreen(screenId) {
@@ -331,6 +348,7 @@ function renderOrderDetail(orderId) {
   detailNotes.textContent        = order.notes;
   detailStatusBadge.textContent  = order.status;
   detailStatusBadge.className    = 'badge ' + getStatusClass(order.status);
+  renderStepper('detailStepper', order.status);
 
   const approvalBody = document.getElementById('approvalItemsBody');
   if (approvalBody) {
