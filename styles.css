@@ -67,7 +67,7 @@ button {
   width: 52px;
   height: 52px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.18) url(https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBdZjpKyj4ESGZpClC_JzNg8D7h9Pd4pWSag&s) center/cover no-repeat;
   display: grid;
   place-items: center;
   font-weight: 700;
