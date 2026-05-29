@@ -321,31 +321,48 @@ function addProductToOrder(ref) {
 function renderOrderDetail(orderId) {
   const order = getOrderById(orderId);
   if (!order) return;
-
   appState.selectedOrderId = order.id;
 
-  detailId.textContent = order.id;
-  detailBranch.textContent = order.branch;
-  detailRequester.textContent = order.requester;
-  detailStatusBadge.textContent = order.status;
-  detailStatusBadge.className = `badge ${getStatusClass(order.status)}`;
-  detailUrgency.textContent = order.urgency;
-  detailDate.textContent = formatDate(order.date);
-  detailNotes.textContent = order.notes;
+  detailId.textContent           = order.id;
+  detailBranch.textContent       = order.branch;
+  detailRequester.textContent    = order.requester;
+  detailUrgency.textContent      = order.urgency;
+  detailDate.textContent         = formatDate(order.date);
+  detailNotes.textContent        = order.notes;
+  detailStatusBadge.textContent  = order.status;
+  detailStatusBadge.className    = 'badge ' + getStatusClass(order.status);
 
-  detailProductList.innerHTML = `
-    <li>${order.product} x ${order.quantity}</li>
-  `;
+  const approvalBody = document.getElementById('approvalItemsBody');
+  if (approvalBody) {
+    approvalBody.innerHTML = order.items.map((item) => {
+      const catalogItem = productCatalog.find((p) => p.ref === item.ref);
+      const stock       = catalogItem ? catalogItem.stock : '—';
+      const stockClass  = (typeof stock === 'number' && stock < item.quantity)
+        ? 'color:var(--danger)' : 'color:var(--success)';
+      return `<tr>
+        <td>${item.ref}</td>
+        <td>${item.name}</td>
+        <td>${item.quantity} ${item.unit}</td>
+        <td>
+          <input type="number" class="approve-qty" data-ref="${item.ref}"
+            min="0" max="${item.quantity}" value="${item.quantityApproved}"
+            style="width:65px; padding:4px 8px; border-radius:8px;" />
+        </td>
+        <td style="${stockClass}; font-size:0.82rem;">${stock} disp.</td>
+      </tr>`;
+    }).join('');
+  }
 
-  detailHistoryTimeline.innerHTML = order.history
-    .map(
-      (item) => `
-      <li>
-        <strong>${formatDate(item.date)}</strong>
-        <p>${item.event}</p>
-      </li>`
-    )
-    .join('');
+  detailProductList.innerHTML = order.items.map((item) =>
+    `<li>${item.ref} — ${item.name} x ${item.quantity} ${item.unit}</li>`
+  ).join('');
+
+  detailHistoryTimeline.innerHTML = order.history.map((item) => `
+    <li>
+      <span class="timeline-dot"></span>
+      <div><strong>${formatDate(item.date)}</strong><p>${item.event}</p></div>
+    </li>`
+  ).join('');
 
   decisionNotes.value = '';
   updateActionButtons(order.status);
