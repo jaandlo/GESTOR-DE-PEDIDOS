@@ -637,3 +637,21 @@ textarea {
 .stepper-node.active { color: var(--text); }
 .stepper-connector { flex: 1; height: 2px; background: var(--border); min-width: 16px; }
 .stepper-connector.done { background: var(--success); }
+
+.btn:hover {
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.card--summary {
+  background: var(--surface-strong);
+}
+
+.summary-list li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}

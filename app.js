@@ -27,8 +27,10 @@ const historyTimeline = document.getElementById('historyTimeline');
 const decisionNotes = document.getElementById('decisionNotes');
 const approveOrderBtn = document.getElementById('approveOrderBtn');
 const rejectOrderBtn = document.getElementById('rejectOrderBtn');
+const reviewOrderBtn = document.getElementById('reviewOrderBtn');
 const dispatchOrderBtn = document.getElementById('dispatchOrderBtn');
 const receiveOrderBtn = document.getElementById('receiveOrderBtn');
+const cancelOrderBtn = document.getElementById('cancelOrderBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const toast = document.getElementById('toast');
 
@@ -326,9 +328,13 @@ function removeOrderItem(idx) {
 
 function addProductToOrder(ref) {
   const product = productCatalog.find((p) => p.ref === ref);
-  if (!product) return;
+  if (!product) {
+    showToast('Producto no encontrado');
+    return;
+  }
   if (currentOrderItems.find((i) => i.ref === ref)) {
-    alert('Ese producto ya está en el pedido.'); return;
+    showToast('Ese producto ya está en el pedido.');
+    return;
   }
   currentOrderItems.push({
     ref: product.ref, name: product.name,
@@ -340,6 +346,7 @@ function addProductToOrder(ref) {
   const resultsEl = document.getElementById('productSearchResults');
   if (searchEl)  searchEl.value = '';
   if (resultsEl) resultsEl.innerHTML = '';
+  showToast('Producto agregado al pedido');
 }
 
 function renderOrderDetail(orderId) {
@@ -479,12 +486,11 @@ loginForm.addEventListener('submit', (event) => {
   const role = loginRole.value;
 
   if (!userName) {
-    alert('Por favor ingresa tu usuario.');
+    showToast('Por favor ingresa tu usuario');
     return;
   }
 
   appState.currentUser = {
-    
     name: userName,
     branch: userBranch,
     role,
@@ -507,22 +513,25 @@ loginForm.addEventListener('submit', (event) => {
   renderBodegaOrders();
   renderNotifications();
   renderHistorial();
+  showToast('Bienvenido ' + userName);
 });
 
 orderForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const branch    = document.getElementById('orderBranch').value;
+  const branch    = document.getElementById('orderBranch').value.trim();
   const requester = document.getElementById('orderRequester').value.trim();
   const date      = document.getElementById('orderDate').value;
   const urgency   = document.getElementById('orderUrgency')?.value || 'Media';
   const notes     = document.getElementById('orderNotes').value.trim();
 
-  if (!requester || !date) {
-    alert('Completa todos los campos del pedido.'); return;
+  if (!branch || !requester || !date) {
+    showToast('Completa todos los campos requeridos');
+    return;
   }
   if (currentOrderItems.length === 0) {
-    alert('Agrega al menos un producto al pedido.'); return;
+    showToast('Agrega al menos un producto al pedido');
+    return;
   }
 
   const newOrder = {
@@ -548,6 +557,7 @@ orderForm.addEventListener('submit', (event) => {
   const orderBranchInput = document.getElementById('orderBranch');
   if (orderBranchInput) orderBranchInput.value = branch;
 
+  showToast('Pedido creado exitosamente: ' + newOrder.id);
   showScreen('dashboard-sede');
 });
 
@@ -605,9 +615,17 @@ if (productSearchEl) {
 }
 
 approveOrderBtn.addEventListener('click', () => {
+  if (!appState.selectedOrderId) {
+    showToast('No hay pedido seleccionado');
+    return;
+  }
+
   const note  = decisionNotes.value.trim();
   const order = getOrderById(appState.selectedOrderId);
-  if (!order) return;
+  if (!order) {
+    showToast('Pedido no encontrado');
+    return;
+  }
 
   document.querySelectorAll('.approve-qty').forEach((input) => {
     const item = order.items.find((i) => i.ref === input.dataset.ref);
@@ -623,15 +641,28 @@ approveOrderBtn.addEventListener('click', () => {
 });
 
 rejectOrderBtn.addEventListener('click', () => {
+  if (!appState.selectedOrderId) {
+    showToast('No hay pedido seleccionado');
+    return;
+  }
   const note = decisionNotes.value.trim();
-  updateOrderStatus(appState.selectedOrderId, 'Rechazado', note);
+  const razonRechazo = note || 'Sin justificación especificada';
+  updateOrderStatus(appState.selectedOrderId, 'Rechazado', 'Rechazado: ' + razonRechazo);
 });
 
 dispatchOrderBtn.addEventListener('click', () => {
+  if (!appState.selectedOrderId) {
+    showToast('No hay pedido seleccionado');
+    return;
+  }
   updateOrderStatus(appState.selectedOrderId, 'Despachado', 'Pedido enviado a despacho');
 });
 
 receiveOrderBtn.addEventListener('click', () => {
+  if (!appState.selectedOrderId) {
+    showToast('No hay pedido seleccionado');
+    return;
+  }
   updateOrderStatus(appState.selectedOrderId, 'Recibido', 'Recepción confirmada en sede');
 });
 
@@ -691,7 +722,12 @@ if (cancelOrderBtn) {
   cancelOrderBtn.addEventListener('click', () => {
     const note = decisionNotes.value.trim();
     if (!note) {
-      alert('Escribe el motivo de cancelación.'); return;
+      showToast('Escribe el motivo de cancelación');
+      return;
+    }
+    if (!appState.selectedOrderId) {
+      showToast('No hay pedido seleccionado');
+      return;
     }
     updateOrderStatus(
       appState.selectedOrderId,
