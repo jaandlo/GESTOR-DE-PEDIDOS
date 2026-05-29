@@ -180,22 +180,22 @@ function renderDashboardStats() {
 }
 
 function renderSedeOrders() {
-  const branch = appState.currentUser?.branch || 'Sede Central';
-  const orders = sampleOrders.filter((order) => order.branch === branch);
+  const branch = appState.currentUser?.branch || '';
+  const role   = appState.currentUser?.role;
+  const orders = role === 'Administrador'
+    ? sampleOrders
+    : sampleOrders.filter((o) => o.branch === branch);
 
-  sedeOrdersTable.innerHTML = orders
-    .slice(0, 5)
-    .map(
-      (order) => `
-      <tr>
-        <td>${order.id}</td>
-        <td>${order.branch}</td>
-        <td>${order.product}</td>
-        <td>${order.status}</td>
-        <td>${order.urgency}</td>
-      </tr>`
-    )
-    .join('');
+  sedeOrdersTable.innerHTML = orders.slice(0, 5).map((order) => {
+    const resumen = order.items.length + ' ref' + (order.items.length > 1 ? 's.' : '.');
+    return `<tr>
+      <td>${order.id}</td>
+      <td>${order.branch}</td>
+      <td>${resumen}</td>
+      <td><span class="badge ${getStatusClass(order.status)}">${order.status}</span></td>
+      <td>${order.urgency}</td>
+    </tr>`;
+  }).join('');
 }
 
 function renderNotifications() {
@@ -216,24 +216,39 @@ function renderBodegaOrders() {
   const statusFilter = filterStatus.value;
   const branchFilter = filterBranch.value.toLowerCase();
 
-  const filtered = sampleOrders.filter((order) => {
-    const statusMatch = statusFilter === 'Todos' || order.status === statusFilter;
-    const branchMatch = order.branch.toLowerCase().includes(branchFilter);
+  const filtered = sampleOrders.filter((o) => {
+    const statusMatch = statusFilter === 'Todos' || o.status === statusFilter;
+    const branchMatch = o.branch.toLowerCase().includes(branchFilter);
     return statusMatch && branchMatch;
   });
 
-  bodegaOrdersTable.innerHTML = filtered
-    .map(
-      (order) => `
-      <tr>
-        <td>${order.id}</td>
-        <td>${order.branch}</td>
-        <td>${order.product}</td>
-        <td>${order.status}</td>
-        <td><button class="btn btn-secondary" data-order-id="${order.id}">Ver</button></td>
-      </tr>`
-    )
-    .join('');
+  bodegaOrdersTable.innerHTML = filtered.map((order) => {
+    const resumen = order.items.length + ' ref' + (order.items.length > 1 ? 's.' : '.');
+    const accion  = getInlineAction(order);
+    return `<tr>
+      <td>${order.id}</td>
+      <td>${order.branch}</td>
+      <td>${formatDate(order.date)}</td>
+      <td>${resumen}</td>
+      <td>${order.urgency}</td>
+      <td><span class="badge ${getStatusClass(order.status)}">${order.status}</span></td>
+      <td>${accion}</td>
+    </tr>`;
+  }).join('');
+}
+
+function getInlineAction(order) {
+  const id = order.id;
+  switch (order.status) {
+    case 'Pendiente':
+      return `<button class="btn btn-primary btn-sm" data-order-id="${id}">Revisar</button>`;
+    case 'En revisión':
+      return `<button class="btn btn-primary btn-sm" data-order-id="${id}">Continuar</button>`;
+    case 'Aprobado':
+      return `<button class="btn btn-success btn-sm" data-order-id="${id}">Despachar</button>`;
+    default:
+      return `<button class="btn btn-secondary btn-sm" data-order-id="${id}">Ver</button>`;
+  }
 }
 
 function updateOrderSummary() {
