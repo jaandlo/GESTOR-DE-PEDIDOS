@@ -30,32 +30,44 @@ const rejectOrderBtn = document.getElementById('rejectOrderBtn');
 const dispatchOrderBtn = document.getElementById('dispatchOrderBtn');
 const receiveOrderBtn = document.getElementById('receiveOrderBtn');
 const logoutBtn = document.getElementById('logoutBtn');
+const toast = document.getElementById('toast');
+
+const productCatalog = [
+  { ref: 'EPP-001', name: 'Casco industrial', unit: 'und', stock: 24 },
+  { ref: 'EPP-045', name: 'Guantes de protección', unit: 'par', stock: 35 },
+  { ref: 'EPP-078', name: 'Botas de seguridad', unit: 'par', stock: 8 },
+  { ref: 'EPP-012', name: 'Chaqueta de trabajo', unit: 'und', stock: 15 },
+  { ref: 'EPP-033', name: 'Gafas de protección', unit: 'und', stock: 42 },
+  { ref: 'EPP-055', name: 'Mascarilla N95', unit: 'und', stock: 60 },
+];
 
 const sampleOrders = [
   {
     id: 'PD-1001',
     branch: 'Sede Central',
     requester: 'Juan Pérez',
-    product: 'Casco industrial',
-    quantity: 12,
-    status: 'Pendiente',
     urgency: 'Alta',
+    status: 'Pendiente',
     date: '2026-05-21',
     notes: 'Entrega urgente',
-    history: [
-      { date: '2026-05-18', event: 'Pedido creado por Sede Central' },
+    items: [
+      { ref: 'EPP-001', name: 'Casco industrial', unit: 'und', quantity: 12, quantityApproved: 12, obs: '' },
+      { ref: 'EPP-033', name: 'Gafas de protección', unit: 'und', quantity: 12, quantityApproved: 12, obs: '' },
     ],
+    history: [{ date: '2026-05-21', event: 'Pedido creado por Juan Pérez' }],
   },
   {
     id: 'PD-1002',
     branch: 'Sede Norte',
     requester: 'María López',
-    product: 'Guantes de protección',
-    quantity: 25,
-    status: 'En revisión',
     urgency: 'Media',
+    status: 'En revisión',
     date: '2026-05-19',
     notes: 'Verificar tallas disponibles',
+    items: [
+      { ref: 'EPP-045', name: 'Guantes de protección', unit: 'par', quantity: 25, quantityApproved: 25, obs: 'Talla M' },
+      { ref: 'EPP-033', name: 'Gafas de protección', unit: 'und', quantity: 10, quantityApproved: 10, obs: '' },
+    ],
     history: [
       { date: '2026-05-18', event: 'Pedido creado por Sede Norte' },
       { date: '2026-05-19', event: 'Bodega inició revisión' },
@@ -65,15 +77,16 @@ const sampleOrders = [
     id: 'PD-1003',
     branch: 'Sede Sur',
     requester: 'Carlos Díaz',
-    product: 'Botas de seguridad',
-    quantity: 10,
-    status: 'Despachado',
     urgency: 'Baja',
+    status: 'Despachado',
     date: '2026-05-17',
     notes: 'Entrega al almacén sur',
+    items: [
+      { ref: 'EPP-078', name: 'Botas de seguridad', unit: 'par', quantity: 10, quantityApproved: 8, obs: '' },
+    ],
     history: [
       { date: '2026-05-16', event: 'Pedido creado por Sede Sur' },
-      { date: '2026-05-17', event: 'Pedido aprobado por bodega' },
+      { date: '2026-05-17', event: 'Pedido aprobado parcialmente — 8 de 10 pares disponibles' },
       { date: '2026-05-18', event: 'Pedido despachado' },
     ],
   },
@@ -81,15 +94,15 @@ const sampleOrders = [
     id: 'PD-1004',
     branch: 'Sede Central',
     requester: 'Laura Sánchez',
-    product: 'Chaqueta de trabajo',
-    quantity: 8,
-    status: 'Pendiente',
     urgency: 'Alta',
+    status: 'Pendiente',
     date: '2026-05-20',
-    notes: 'Tallas mixtas',
-    history: [
-      { date: '2026-05-20', event: 'Pedido creado por Sede Central' },
+    notes: 'Tallas mixtapes',
+    items: [
+      { ref: 'EPP-012', name: 'Chaqueta de trabajo', unit: 'und', quantity: 8, quantityApproved: 8, obs: '' },
+      { ref: 'EPP-055', name: 'Mascarilla N95', unit: 'und', quantity: 50, quantityApproved: 50, obs: '' },
     ],
+    history: [{ date: '2026-05-20', event: 'Pedido creado por Laura Sánchez' }],
   },
 ];
 
@@ -110,6 +123,29 @@ function formatDate(dateString) {
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+function showToast(message) {
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 2800);
+}
+
+const STATUS_STEPS = ['Pendiente', 'En revisión', 'Aprobado', 'Despachado', 'Recibido'];
+
+function renderStepper(containerId, currentStatus) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const currentIndex = STATUS_STEPS.indexOf(currentStatus);
+
+  container.innerHTML = STATUS_STEPS.map((step, i) => {
+    const nodeClass      = i < currentIndex ? 'done' : (i === currentIndex ? 'active' : '');
+    const connectorClass = i < currentIndex ? 'done' : '';
+    const connector      = i < STATUS_STEPS.length - 1
+      ? `<div class="stepper-connector ${connectorClass}"></div>` : '';
+    return `<div class="stepper-node ${nodeClass}">${step}</div>${connector}`;
+  }).join('');
+}
+
 function showScreen(screenId) {
   screens.forEach((screen) => {
     screen.classList.toggle('active', screen.id === screenId);
@@ -117,10 +153,20 @@ function showScreen(screenId) {
   navLinks.forEach((link) => {
     link.classList.toggle('active', link.dataset.screen === screenId);
   });
-  // Ocultar el botón de logout cuando se muestre la pantalla de login
-  if (typeof logoutBtn !== 'undefined' && logoutBtn) {
+
+  if (logoutBtn) {
     logoutBtn.style.display = screenId === 'screen-login' ? 'none' : 'inline-flex';
   }
+
+  const role = appState.currentUser?.role;
+  navLinks.forEach((link) => {
+    if (!role) { link.style.display = 'none'; return; }
+    const s = link.dataset.screen;
+    const oculto =
+      (s === 'dashboard-bodega' && role === 'Encargado de Sede') ||
+      (s === 'dashboard-sede'   && role === 'Encargado de Bodega');
+    link.style.display = oculto ? 'none' : '';
+  });
 }
 
 function getOrderById(id) {
@@ -158,22 +204,22 @@ function renderDashboardStats() {
 }
 
 function renderSedeOrders() {
-  const branch = appState.currentUser?.branch || 'Sede Central';
-  const orders = sampleOrders.filter((order) => order.branch === branch);
+  const branch = appState.currentUser?.branch || '';
+  const role   = appState.currentUser?.role;
+  const orders = role === 'Administrador'
+    ? sampleOrders
+    : sampleOrders.filter((o) => o.branch === branch);
 
-  sedeOrdersTable.innerHTML = orders
-    .slice(0, 5)
-    .map(
-      (order) => `
-      <tr>
-        <td>${order.id}</td>
-        <td>${order.branch}</td>
-        <td>${order.product}</td>
-        <td>${order.status}</td>
-        <td>${order.urgency}</td>
-      </tr>`
-    )
-    .join('');
+  sedeOrdersTable.innerHTML = orders.slice(0, 5).map((order) => {
+    const resumen = order.items.length + ' ref' + (order.items.length > 1 ? 's.' : '.');
+    return `<tr>
+      <td>${order.id}</td>
+      <td>${order.branch}</td>
+      <td>${resumen}</td>
+      <td><span class="badge ${getStatusClass(order.status)}">${order.status}</span></td>
+      <td>${order.urgency}</td>
+    </tr>`;
+  }).join('');
 }
 
 function renderNotifications() {
@@ -194,24 +240,39 @@ function renderBodegaOrders() {
   const statusFilter = filterStatus.value;
   const branchFilter = filterBranch.value.toLowerCase();
 
-  const filtered = sampleOrders.filter((order) => {
-    const statusMatch = statusFilter === 'Todos' || order.status === statusFilter;
-    const branchMatch = order.branch.toLowerCase().includes(branchFilter);
+  const filtered = sampleOrders.filter((o) => {
+    const statusMatch = statusFilter === 'Todos' || o.status === statusFilter;
+    const branchMatch = o.branch.toLowerCase().includes(branchFilter);
     return statusMatch && branchMatch;
   });
 
-  bodegaOrdersTable.innerHTML = filtered
-    .map(
-      (order) => `
-      <tr>
-        <td>${order.id}</td>
-        <td>${order.branch}</td>
-        <td>${order.product}</td>
-        <td>${order.status}</td>
-        <td><button class="btn btn-secondary" data-order-id="${order.id}">Ver</button></td>
-      </tr>`
-    )
-    .join('');
+  bodegaOrdersTable.innerHTML = filtered.map((order) => {
+    const resumen = order.items.length + ' ref' + (order.items.length > 1 ? 's.' : '.');
+    const accion  = getInlineAction(order);
+    return `<tr>
+      <td>${order.id}</td>
+      <td>${order.branch}</td>
+      <td>${formatDate(order.date)}</td>
+      <td>${resumen}</td>
+      <td>${order.urgency}</td>
+      <td><span class="badge ${getStatusClass(order.status)}">${order.status}</span></td>
+      <td>${accion}</td>
+    </tr>`;
+  }).join('');
+}
+
+function getInlineAction(order) {
+  const id = order.id;
+  switch (order.status) {
+    case 'Pendiente':
+      return `<button class="btn btn-primary btn-sm" data-order-id="${id}">Revisar</button>`;
+    case 'En revisión':
+      return `<button class="btn btn-primary btn-sm" data-order-id="${id}">Continuar</button>`;
+    case 'Aprobado':
+      return `<button class="btn btn-success btn-sm" data-order-id="${id}">Despachar</button>`;
+    default:
+      return `<button class="btn btn-secondary btn-sm" data-order-id="${id}">Ver</button>`;
+  }
 }
 
 function updateOrderSummary() {
@@ -223,34 +284,110 @@ function updateOrderSummary() {
   summaryCount.textContent = summaryItems.length;
 }
 
+let currentOrderItems = [];
+
+function renderOrderItemsTable() {
+  const tbody = document.getElementById('orderItemsTable');
+  const count = document.getElementById('orderItemsCount');
+  if (!tbody) return;
+
+  tbody.innerHTML = currentOrderItems.map((item, idx) => `
+    <tr>
+      <td>${item.ref}</td>
+      <td>${item.name}</td>
+      <td>
+        <input type="number" min="1" value="${item.quantity}"
+          style="width:60px; padding:4px 8px; border-radius:8px;"
+          onchange="currentOrderItems[${idx}].quantity = Math.max(1, +this.value);" />
+      </td>
+      <td>
+        <input type="text" value="${item.obs}" placeholder="—"
+          style="width:90px; padding:4px 8px; border-radius:8px;"
+          onchange="currentOrderItems[${idx}].obs = this.value;" />
+      </td>
+      <td>
+        <button onclick="removeOrderItem(${idx})"
+          style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:1rem;">✕</button>
+      </td>
+    </tr>`
+  ).join('');
+
+  if (count) {
+    const total = currentOrderItems.reduce((s, i) => s + i.quantity, 0);
+    count.textContent = currentOrderItems.length + ' producto' +
+      (currentOrderItems.length !== 1 ? 's' : '') + ' — ' + total + ' unidades en total';
+  }
+}
+
+function removeOrderItem(idx) {
+  currentOrderItems.splice(idx, 1);
+  renderOrderItemsTable();
+}
+
+function addProductToOrder(ref) {
+  const product = productCatalog.find((p) => p.ref === ref);
+  if (!product) return;
+  if (currentOrderItems.find((i) => i.ref === ref)) {
+    alert('Ese producto ya está en el pedido.'); return;
+  }
+  currentOrderItems.push({
+    ref: product.ref, name: product.name,
+    unit: product.unit, quantity: 1,
+    quantityApproved: 1, obs: '',
+  });
+  renderOrderItemsTable();
+  const searchEl = document.getElementById('productSearch');
+  const resultsEl = document.getElementById('productSearchResults');
+  if (searchEl)  searchEl.value = '';
+  if (resultsEl) resultsEl.innerHTML = '';
+}
+
 function renderOrderDetail(orderId) {
   const order = getOrderById(orderId);
   if (!order) return;
-
   appState.selectedOrderId = order.id;
 
-  detailId.textContent = order.id;
-  detailBranch.textContent = order.branch;
-  detailRequester.textContent = order.requester;
-  detailStatusBadge.textContent = order.status;
-  detailStatusBadge.className = `badge ${getStatusClass(order.status)}`;
-  detailUrgency.textContent = order.urgency;
-  detailDate.textContent = formatDate(order.date);
-  detailNotes.textContent = order.notes;
+  detailId.textContent           = order.id;
+  detailBranch.textContent       = order.branch;
+  detailRequester.textContent    = order.requester;
+  detailUrgency.textContent      = order.urgency;
+  detailDate.textContent         = formatDate(order.date);
+  detailNotes.textContent        = order.notes;
+  detailStatusBadge.textContent  = order.status;
+  detailStatusBadge.className    = 'badge ' + getStatusClass(order.status);
+  renderStepper('detailStepper', order.status);
 
-  detailProductList.innerHTML = `
-    <li>${order.product} x ${order.quantity}</li>
-  `;
+  const approvalBody = document.getElementById('approvalItemsBody');
+  if (approvalBody) {
+    approvalBody.innerHTML = order.items.map((item) => {
+      const catalogItem = productCatalog.find((p) => p.ref === item.ref);
+      const stock       = catalogItem ? catalogItem.stock : '—';
+      const stockClass  = (typeof stock === 'number' && stock < item.quantity)
+        ? 'color:var(--danger)' : 'color:var(--success)';
+      return `<tr>
+        <td>${item.ref}</td>
+        <td>${item.name}</td>
+        <td>${item.quantity} ${item.unit}</td>
+        <td>
+          <input type="number" class="approve-qty" data-ref="${item.ref}"
+            min="0" max="${item.quantity}" value="${item.quantityApproved}"
+            style="width:65px; padding:4px 8px; border-radius:8px;" />
+        </td>
+        <td style="${stockClass}; font-size:0.82rem;">${stock} disp.</td>
+      </tr>`;
+    }).join('');
+  }
 
-  detailHistoryTimeline.innerHTML = order.history
-    .map(
-      (item) => `
-      <li>
-        <strong>${formatDate(item.date)}</strong>
-        <p>${item.event}</p>
-      </li>`
-    )
-    .join('');
+  detailProductList.innerHTML = order.items.map((item) =>
+    `<li>${item.ref} — ${item.name} x ${item.quantity} ${item.unit}</li>`
+  ).join('');
+
+  detailHistoryTimeline.innerHTML = order.history.map((item) => `
+    <li>
+      <span class="timeline-dot"></span>
+      <div><strong>${formatDate(item.date)}</strong><p>${item.event}</p></div>
+    </li>`
+  ).join('');
 
   decisionNotes.value = '';
   updateActionButtons(order.status);
@@ -283,23 +420,34 @@ function renderHistorial() {
 }
 
 function updateActionButtons(status) {
-  approveOrderBtn.style.display = 'none';
-  rejectOrderBtn.style.display = 'none';
-  dispatchOrderBtn.style.display = 'none';
-  receiveOrderBtn.style.display = 'none';
+  [approveOrderBtn, rejectOrderBtn, dispatchOrderBtn,
+   receiveOrderBtn, reviewOrderBtn, cancelOrderBtn].forEach((b) => {
+    if (b) b.style.display = 'none';
+  });
 
-  if (status === 'Pendiente' || status === 'En revisión') {
-    approveOrderBtn.style.display = 'inline-flex';
-    rejectOrderBtn.style.display = 'inline-flex';
+  const role = appState.currentUser?.role;
+
+  if (role === 'Encargado de Bodega') {
+    if (status === 'Pendiente') {
+      if (reviewOrderBtn)  reviewOrderBtn.style.display  = 'inline-flex';
+      if (rejectOrderBtn)  rejectOrderBtn.style.display  = 'inline-flex';
+    }
+    if (status === 'En revisión') {
+      if (approveOrderBtn) approveOrderBtn.style.display = 'inline-flex';
+      if (rejectOrderBtn)  rejectOrderBtn.style.display  = 'inline-flex';
+    }
+    if (status === 'Aprobado') {
+      if (dispatchOrderBtn) dispatchOrderBtn.style.display = 'inline-flex';
+    }
   }
 
-  if (status === 'Aprobado') {
-    dispatchOrderBtn.style.display = 'inline-flex';
-    rejectOrderBtn.style.display = 'inline-flex';
-  }
-
-  if (status === 'Despachado') {
-    receiveOrderBtn.style.display = 'inline-flex';
+  if (role === 'Encargado de Sede') {
+    if (status === 'Despachado') {
+      if (receiveOrderBtn) receiveOrderBtn.style.display = 'inline-flex';
+    }
+    if (status === 'Pendiente') {
+      if (cancelOrderBtn) cancelOrderBtn.style.display = 'inline-flex';
+    }
   }
 }
 
@@ -310,8 +458,10 @@ function updateOrderStatus(orderId, status, note) {
   order.status = status;
   order.history.push({
     date: new Date().toISOString().slice(0, 10),
-    event: `${status}${note ? ` - ${note}` : ''}`,
+    event: note || status,
   });
+
+  saveOrders();
 
   renderDashboardStats();
   renderSedeOrders();
@@ -319,6 +469,7 @@ function updateOrderStatus(orderId, status, note) {
   renderNotifications();
   renderHistorial();
   renderOrderDetail(orderId);
+  showToast('Pedido ' + orderId + ' actualizado a: ' + status);
 }
 
 loginForm.addEventListener('submit', (event) => {
@@ -333,10 +484,17 @@ loginForm.addEventListener('submit', (event) => {
   }
 
   appState.currentUser = {
+    
     name: userName,
     branch: userBranch,
     role,
   };
+
+  const orderBranchInput = document.getElementById('orderBranch');
+  if (orderBranchInput) {
+    orderBranchInput.value    = userBranch;
+    orderBranchInput.readOnly = role !== 'Administrador';
+  }
 
   if (role === 'Encargado de Bodega') {
     showScreen('dashboard-bodega');
@@ -354,51 +512,43 @@ loginForm.addEventListener('submit', (event) => {
 orderForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const product = document.getElementById('productSelect').value;
-  const quantity = Number(document.getElementById('productQuantity').value);
-  const branch = document.getElementById('orderBranch').value;
+  const branch    = document.getElementById('orderBranch').value;
   const requester = document.getElementById('orderRequester').value.trim();
-  const date = document.getElementById('orderDate').value;
-  const notes = document.getElementById('orderNotes').value.trim();
-
-  if (quantity < 1) {
-    alert('La cantidad debe ser al menos 1.');
-    return;
-  }
+  const date      = document.getElementById('orderDate').value;
+  const urgency   = document.getElementById('orderUrgency')?.value || 'Media';
+  const notes     = document.getElementById('orderNotes').value.trim();
 
   if (!requester || !date) {
-    alert('Completa todos los campos del pedido.');
-    return;
+    alert('Completa todos los campos del pedido.'); return;
+  }
+  if (currentOrderItems.length === 0) {
+    alert('Agrega al menos un producto al pedido.'); return;
   }
 
   const newOrder = {
-    id: `PD-${1000 + sampleOrders.length + 1}`,
-    branch,
-    requester,
-    product,
-    quantity,
+    id: 'PD-' + (1000 + sampleOrders.length + 1),
+    branch, requester, urgency,
     status: 'Pendiente',
-    urgency: quantity > 20 ? 'Alta' : 'Media',
     date,
     notes: notes || 'Sin observaciones',
-    history: [
-      { date, event: `Pedido creado por ${requester}` },
-    ],
+    items: currentOrderItems.map((i) => ({ ...i })),
+    history: [{ date, event: 'Pedido creado por ' + requester }],
   };
 
   sampleOrders.unshift(newOrder);
-  summaryItems.push({ product, quantity, branch });
-
-  updateOrderSummary();
+  saveOrders();
+  currentOrderItems = [];
+  renderOrderItemsTable();
   renderBodegaOrders();
   renderDashboardStats();
+  renderSedeOrders();
   renderNotifications();
   orderForm.reset();
-  document.getElementById('orderBranch').value = branch;
 
-  if (appState.currentUser?.role !== 'Encargado de Bodega') {
-    showScreen('dashboard-sede');
-  }
+  const orderBranchInput = document.getElementById('orderBranch');
+  if (orderBranchInput) orderBranchInput.value = branch;
+
+  showScreen('dashboard-sede');
 });
 
 navLinks.forEach((link) => {
@@ -425,9 +575,51 @@ document.addEventListener('click', (event) => {
 filterStatus.addEventListener('change', renderBodegaOrders);
 filterBranch.addEventListener('input', renderBodegaOrders);
 
+const productSearchEl = document.getElementById('productSearch');
+if (productSearchEl) {
+  productSearchEl.addEventListener('input', () => {
+    const q       = productSearchEl.value.toLowerCase();
+    const results = document.getElementById('productSearchResults');
+    if (!results) return;
+    if (q.length < 2) { results.innerHTML = ''; return; }
+
+    const encontrados = productCatalog.filter((p) =>
+      p.name.toLowerCase().includes(q) || p.ref.toLowerCase().includes(q)
+    );
+
+    results.innerHTML = encontrados.map((p) => `
+      <div style="display:flex; justify-content:space-between; align-items:center;
+                  padding:8px 12px; background:var(--surface-strong);
+                  border-radius:10px; margin-bottom:6px;">
+        <span style="font-size:0.88rem;">
+          <strong>${p.ref}</strong> — ${p.name}
+          <span style="color:var(--text-muted); font-size:0.8rem;">
+            (${p.unit} · ${p.stock} disponibles)
+          </span>
+        </span>
+        <button class="btn btn-secondary" style="padding:6px 14px; font-size:0.82rem;"
+          onclick="addProductToOrder('${p.ref}')">+ Agregar</button>
+      </div>`
+    ).join('') || '<p style="font-size:0.85rem; color:var(--text-muted);">Sin resultados.</p>';
+  });
+}
+
 approveOrderBtn.addEventListener('click', () => {
-  const note = decisionNotes.value.trim();
-  updateOrderStatus(appState.selectedOrderId, 'Aprobado', note);
+  const note  = decisionNotes.value.trim();
+  const order = getOrderById(appState.selectedOrderId);
+  if (!order) return;
+
+  document.querySelectorAll('.approve-qty').forEach((input) => {
+    const item = order.items.find((i) => i.ref === input.dataset.ref);
+    if (item) item.quantityApproved = Math.max(0, +input.value);
+  });
+
+  const esParciál = order.items.some((i) => i.quantityApproved < i.quantity);
+  const evento    = esParciál
+    ? 'Aprobación parcial' + (note ? ' — ' + note : '')
+    : 'Aprobado' + (note ? ' — ' + note : '');
+
+  updateOrderStatus(appState.selectedOrderId, 'Aprobado', evento);
 });
 
 rejectOrderBtn.addEventListener('click', () => {
@@ -452,6 +644,27 @@ function appInit() {
   updateOrderSummary();
 }
 
+function saveOrders() {
+  try {
+    localStorage.setItem('gestor_pedidos', JSON.stringify(sampleOrders));
+  } catch (e) {
+    console.warn('localStorage no disponible:', e);
+  }
+}
+
+function loadOrders() {
+  try {
+    const saved = localStorage.getItem('gestor_pedidos');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      sampleOrders.length = 0;
+      parsed.forEach((o) => sampleOrders.push(o));
+    }
+  } catch (e) {
+    console.warn('Error al cargar pedidos:', e);
+  }
+}
+loadOrders();
 appInit();
 
 // Logout handler
@@ -472,4 +685,24 @@ function handleLogout() {
 
 if (logoutBtn) {
   logoutBtn.addEventListener('click', handleLogout);
+}
+
+if (cancelOrderBtn) {
+  cancelOrderBtn.addEventListener('click', () => {
+    const note = decisionNotes.value.trim();
+    if (!note) {
+      alert('Escribe el motivo de cancelación.'); return;
+    }
+    updateOrderStatus(
+      appState.selectedOrderId,
+      'Rechazado',
+      'Cancelado por sede — ' + note
+    );
+  });
+}
+
+if (reviewOrderBtn) {
+  reviewOrderBtn.addEventListener('click', () => {
+    updateOrderStatus(appState.selectedOrderId, 'En revisión', 'Recibido en bodega');
+  });
 }
