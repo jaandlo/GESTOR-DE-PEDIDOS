@@ -460,51 +460,43 @@ loginForm.addEventListener('submit', (event) => {
 orderForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const product = document.getElementById('productSelect').value;
-  const quantity = Number(document.getElementById('productQuantity').value);
-  const branch = document.getElementById('orderBranch').value;
+  const branch    = document.getElementById('orderBranch').value;
   const requester = document.getElementById('orderRequester').value.trim();
-  const date = document.getElementById('orderDate').value;
-  const notes = document.getElementById('orderNotes').value.trim();
-
-  if (quantity < 1) {
-    alert('La cantidad debe ser al menos 1.');
-    return;
-  }
+  const date      = document.getElementById('orderDate').value;
+  const urgency   = document.getElementById('orderUrgency')?.value || 'Media';
+  const notes     = document.getElementById('orderNotes').value.trim();
 
   if (!requester || !date) {
-    alert('Completa todos los campos del pedido.');
-    return;
+    alert('Completa todos los campos del pedido.'); return;
+  }
+  if (currentOrderItems.length === 0) {
+    alert('Agrega al menos un producto al pedido.'); return;
   }
 
   const newOrder = {
-    id: `PD-${1000 + sampleOrders.length + 1}`,
-    branch,
-    requester,
-    product,
-    quantity,
+    id: 'PD-' + (1000 + sampleOrders.length + 1),
+    branch, requester, urgency,
     status: 'Pendiente',
-    urgency: quantity > 20 ? 'Alta' : 'Media',
     date,
     notes: notes || 'Sin observaciones',
-    history: [
-      { date, event: `Pedido creado por ${requester}` },
-    ],
+    items: currentOrderItems.map((i) => ({ ...i })),
+    history: [{ date, event: 'Pedido creado por ' + requester }],
   };
 
   sampleOrders.unshift(newOrder);
-  summaryItems.push({ product, quantity, branch });
-
-  updateOrderSummary();
+  saveOrders();
+  currentOrderItems = [];
+  renderOrderItemsTable();
   renderBodegaOrders();
   renderDashboardStats();
+  renderSedeOrders();
   renderNotifications();
   orderForm.reset();
-  document.getElementById('orderBranch').value = branch;
 
-  if (appState.currentUser?.role !== 'Encargado de Bodega') {
-    showScreen('dashboard-sede');
-  }
+  const orderBranchInput = document.getElementById('orderBranch');
+  if (orderBranchInput) orderBranchInput.value = branch;
+
+  showScreen('dashboard-sede');
 });
 
 navLinks.forEach((link) => {
