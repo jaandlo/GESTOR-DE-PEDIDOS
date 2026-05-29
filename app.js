@@ -474,29 +474,29 @@ function updateOrderStatus(orderId, status, note) {
 
 loginForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  const userName = document.getElementById('loginUser').value.trim();
-  const userBranch = document.getElementById('loginSede').value;
-  const role = loginRole.value;
+  const userName = document.getElementById('loginUser').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value.trim();
 
-  if (!userName) {
-    alert('Por favor ingresa tu usuario.');
+  const usuario = usuarios.find(u => u.username === userName && u.password === password);
+
+  if (!usuario) {
+    alert('Usuario o contraseña incorrectos.');
     return;
   }
 
   appState.currentUser = {
-    
-    name: userName,
-    branch: userBranch,
-    role,
+    name: usuario.username,
+    branch: usuario.branch,
+    role: usuario.role,
   };
 
   const orderBranchInput = document.getElementById('orderBranch');
   if (orderBranchInput) {
-    orderBranchInput.value    = userBranch;
-    orderBranchInput.readOnly = role !== 'Administrador';
+    orderBranchInput.value    = usuario.branch;
+    orderBranchInput.readOnly = usuario.role !== 'Administrador';
   }
 
-  if (role === 'Encargado de Bodega') {
+  if (usuario.role === 'Encargado de Bodega') {
     showScreen('dashboard-bodega');
   } else {
     showScreen('dashboard-sede');
