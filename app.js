@@ -636,6 +636,10 @@ receiveOrderBtn.addEventListener('click', () => {
 });
 
 function appInit() {
+  // Ocultar nav al inicio
+  navLinks.forEach((link) => { link.style.display = 'none'; });
+  if (logoutBtn) logoutBtn.style.display = 'none';
+
   renderDashboardStats();
   renderSedeOrders();
   renderNotifications();
