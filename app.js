@@ -6,6 +6,11 @@ const orderSummary = document.getElementById('orderSummary');
 const summaryCount = document.getElementById('summaryCount');
 const sedeOrdersTable = document.getElementById('sedeOrdersTable');
 const notificationsList = document.getElementById('notificationsList');
+const usuarios = [
+  { username: 'juan',  password: '1234', branch: 'Sede Central', role: 'Encargado de Sede' },
+  { username: 'maria', password: '1234', branch: 'Sede Norte',   role: 'Encargado de Bodega' },
+  { username: 'admin', password: 'admin123', branch: 'Sede Central', role: 'Administrador' },
+];
 const bodegaOrdersTable = document.getElementById('bodegaOrdersTable');
 const filterStatus = document.getElementById('filterStatus');
 const filterBranch = document.getElementById('filterBranch');
