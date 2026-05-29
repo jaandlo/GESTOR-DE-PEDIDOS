@@ -148,18 +148,36 @@
                   <input type="date" id="orderDate" required />
                 </label>
                 <label>
-                  Producto
-                  <select id="productSelect">
-                    <option value="Chaqueta de trabajo">Chaqueta de trabajo</option>
-                    <option value="Guantes de protección">Guantes de protección</option>
-                    <option value="Casco industrial">Casco industrial</option>
-                    <option value="Botas de seguridad">Botas de seguridad</option>
+                  Urgencia
+                  <select id="orderUrgency">
+                    <option value="Baja">Baja — espera 5+ días</option>
+                    <option value="Media">Media — 3-5 días</option>
+                    <option value="Alta">Alta — 1-2 días</option>
+                    <option value="Crítica">Crítica — inmediatamente</option>
                   </select>
                 </label>
+
                 <label>
-                  Cantidad
-                  <input type="number" id="productQuantity" min="1" value="1" />
+                  Buscar y agregar productos
+                  <input type="text" id="productSearch" placeholder="Escribe nombre o referencia EPP..." />
                 </label>
+                <div id="productSearchResults" style="margin-bottom: 14px;"></div>
+
+                <table class="data-table" style="margin-bottom: 12px;">
+                  <thead>
+                    <tr>
+                      <th>Ref.</th>
+                      <th>Producto</th>
+                      <th>Cant.</th>
+                      <th>Obs.</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="orderItemsTable"></tbody>
+                </table>
+                <p id="orderItemsCount" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
+                  0 productos agregados
+                </p>
                 <label>
                   Observaciones
                   <textarea id="orderNotes" rows="3" placeholder="Ej. Entrega urgente" ></textarea>
