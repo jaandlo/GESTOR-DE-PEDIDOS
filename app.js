@@ -433,8 +433,10 @@ function updateOrderStatus(orderId, status, note) {
   order.status = status;
   order.history.push({
     date: new Date().toISOString().slice(0, 10),
-    event: `${status}${note ? ` - ${note}` : ''}`,
+    event: note || status,
   });
+
+  saveOrders();
 
   renderDashboardStats();
   renderSedeOrders();
@@ -456,10 +458,17 @@ loginForm.addEventListener('submit', (event) => {
   }
 
   appState.currentUser = {
+    
     name: userName,
     branch: userBranch,
     role,
   };
+
+  const orderBranchInput = document.getElementById('orderBranch');
+  if (orderBranchInput) {
+    orderBranchInput.value    = userBranch;
+    orderBranchInput.readOnly = role !== 'Administrador';
+  }
 
   if (role === 'Encargado de Bodega') {
     showScreen('dashboard-bodega');
@@ -609,6 +618,27 @@ function appInit() {
   updateOrderSummary();
 }
 
+function saveOrders() {
+  try {
+    localStorage.setItem('gestor_pedidos', JSON.stringify(sampleOrders));
+  } catch (e) {
+    console.warn('localStorage no disponible:', e);
+  }
+}
+
+function loadOrders() {
+  try {
+    const saved = localStorage.getItem('gestor_pedidos');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      sampleOrders.length = 0;
+      parsed.forEach((o) => sampleOrders.push(o));
+    }
+  } catch (e) {
+    console.warn('Error al cargar pedidos:', e);
+  }
+}
+loadOrders();
 appInit();
 
 // Logout handler
@@ -629,4 +659,24 @@ function handleLogout() {
 
 if (logoutBtn) {
   logoutBtn.addEventListener('click', handleLogout);
+}
+
+if (cancelOrderBtn) {
+  cancelOrderBtn.addEventListener('click', () => {
+    const note = decisionNotes.value.trim();
+    if (!note) {
+      alert('Escribe el motivo de cancelación.'); return;
+    }
+    updateOrderStatus(
+      appState.selectedOrderId,
+      'Rechazado',
+      'Cancelado por sede — ' + note
+    );
+  });
+}
+
+if (reviewOrderBtn) {
+  reviewOrderBtn.addEventListener('click', () => {
+    updateOrderStatus(appState.selectedOrderId, 'En revisión', 'Recibido en bodega');
+  });
 }
