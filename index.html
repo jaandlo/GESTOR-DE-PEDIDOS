@@ -308,12 +308,30 @@
             </div>
             <div class="card card-actions">
               <h3>Decisión</h3>
-              <p>Aprueba o rechaza el pedido con observaciones.</p>
-              <textarea id="decisionNotes" rows="4" placeholder="Comentarios..."></textarea>
-              <div class="actions-row">
-                <button class="btn btn-secondary" id="reviewOrderBtn" style="display:none;">Poner en revisión</button>
+              <p style="color:var(--text-muted); margin-bottom:12px;">
+                Ajusta cantidades si apruebas parcialmente.
+              </p>
+
+              <table class="data-table" style="margin-bottom:16px;">
+                <thead>
+                  <tr>
+                    <th>Ref.</th>
+                    <th>Producto</th>
+                    <th>Solicitado</th>
+                    <th>Aprobar</th>
+                    <th>Stock</th>
+                  </tr>
+                </thead>
+                <tbody id="approvalItemsBody"></tbody>
+              </table>
+
+              <textarea id="decisionNotes" rows="3"
+                placeholder="Justificación o comentarios..."></textarea>
+
+              <div class="actions-row" style="margin-top:14px;">
                 <button class="btn btn-success"   id="approveOrderBtn" style="display:none;">Aprobar</button>
                 <button class="btn btn-danger"    id="rejectOrderBtn">Rechazar</button>
+                <button class="btn btn-secondary" id="reviewOrderBtn"  style="display:none;">Poner en revisión</button>
                 <button class="btn btn-secondary" id="dispatchOrderBtn" style="display:none;">Despachar</button>
                 <button class="btn btn-secondary" id="receiveOrderBtn"  style="display:none;">Confirmar recibido</button>
                 <button class="btn btn-danger"    id="cancelOrderBtn"
