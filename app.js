@@ -6,6 +6,11 @@ const orderSummary = document.getElementById('orderSummary');
 const summaryCount = document.getElementById('summaryCount');
 const sedeOrdersTable = document.getElementById('sedeOrdersTable');
 const notificationsList = document.getElementById('notificationsList');
+const usuarios = [
+  { username: 'juan',  password: '1234', branch: 'Sede Central', role: 'Encargado de Sede' },
+  { username: 'maria', password: '1234', branch: 'Sede Norte',   role: 'Encargado de Bodega' },
+  { username: 'admin', password: 'admin123', branch: 'Sede Central', role: 'Administrador' },
+];
 const bodegaOrdersTable = document.getElementById('bodegaOrdersTable');
 const filterStatus = document.getElementById('filterStatus');
 const filterBranch = document.getElementById('filterBranch');
@@ -481,16 +486,18 @@ function updateOrderStatus(orderId, status, note) {
 
 loginForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  const userName = document.getElementById('loginUser').value.trim();
-  const userBranch = document.getElementById('loginSede').value;
-  const role = loginRole.value;
+  const userName = document.getElementById('loginUser').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value.trim();
+
+  const usuario = usuarios.find(u => u.username === userName && u.password === password);
 
   if (!userName) {
-    showToast('Por favor ingresa tu usuario');
+    alert('Por favor ingresa tu usuario.');
     return;
   }
 
   appState.currentUser = {
+    
     name: userName,
     branch: userBranch,
     role,
@@ -498,11 +505,11 @@ loginForm.addEventListener('submit', (event) => {
 
   const orderBranchInput = document.getElementById('orderBranch');
   if (orderBranchInput) {
-    orderBranchInput.value    = userBranch;
-    orderBranchInput.readOnly = role !== 'Administrador';
+    orderBranchInput.value    = usuario.branch;
+    orderBranchInput.readOnly = usuario.role !== 'Administrador';
   }
 
-  if (role === 'Encargado de Bodega') {
+  if (usuario.role === 'Encargado de Bodega') {
     showScreen('dashboard-bodega');
   } else {
     showScreen('dashboard-sede');
@@ -667,6 +674,10 @@ receiveOrderBtn.addEventListener('click', () => {
 });
 
 function appInit() {
+  // Ocultar nav al inicio
+  navLinks.forEach((link) => { link.style.display = 'none'; });
+  if (logoutBtn) logoutBtn.style.display = 'none';
+
   renderDashboardStats();
   renderSedeOrders();
   renderNotifications();
